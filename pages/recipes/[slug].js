@@ -1,6 +1,7 @@
 import { createClient } from "contentful";
 import { documentToReactComponents } from "@contentful/rich-text-react-renderer";
 import Image from "next/image";
+import Skeleton from "../../components/Skeleton";
 
 const client = createClient({
   space: process.env.CONTENTFUL_SPACE_ID,
@@ -20,7 +21,7 @@ export const getStaticPaths = async () => {
 
   return {
     paths,
-    fallback: false,
+    fallback: true,
   };
 };
 
@@ -41,7 +42,18 @@ export const getStaticProps = async ({ params } = context) => {
   };
 };
 
+// I think whenever the user use an url /recipes/[slug]
+// => next will search for the data which is related to this slug
+// then will pass it to the "RecipeDetails" component, so it can render using it
+// So, if data for that slug wasn't exist, then pass "undefined" to the "RecipeDetails"
+// while next is fetching this new data in the background using "getStaticProps", and after the data is ready
+// it will pass it to the component, and render it in the server, then send its html to the
+// browser
+// so we need a placeholder or spinner in that waiting time
+
 export default function RecipeDetails({ recipe }) {
+  if (!recipe) return <Skeleton />;
+
   const { featuredImage, title, cookingTime, ingredients, method } =
     recipe.fields;
 
