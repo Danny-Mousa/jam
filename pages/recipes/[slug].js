@@ -29,14 +29,28 @@ export const getStaticPaths = async () => {
 // to get every possible page prepared
 
 export const getStaticProps = async ({ params } = context) => {
-  const { items } = await client.getEntries({
-    content_type: "recipe",
-    "fields.slug": params.slug,
-  });
+  const items = [];
+
+  try {
+    const data = await client.getEntries({
+      content_type: "recipe",
+      "fields.slug": params.slug,
+    });
+
+    items.push(...data.items);
+  } catch {}
+
+  if (!items.length)
+    return {
+      redirect: {
+        destination: "/",
+        permanent: false, // meaning we don't want that behavior after we build a page for this data
+      },
+    };
 
   return {
     props: {
-      recipe: items[0],
+      recipe: items[0] ? items[0] : null, // must not return "undefined" value, in this case => should make it return null
       revalidate: 1,
     },
   };
